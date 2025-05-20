@@ -477,12 +477,12 @@
       </li>
       
       {{-- modal absen --}}
-       <li class="nav-item d-md-flex d-none">
-        <a class="nav-link position-relative btn"  data-bs-toggle="modal"
-        data-bs-target="#FormModal">
-          <i class="material-icons-outlined">access_alarm</i>
-        </a>
+      <li class="nav-item d-flex">
+          <a class="nav-link position-relative btn" data-bs-toggle="modal" data-bs-target="#FormModal">
+              <i class="material-icons-outlined">access_alarm</i>
+          </a>
       </li>
+    
 
       <li class="nav-item dropdown">
         <a href="javascrpt:;" class="dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown">
