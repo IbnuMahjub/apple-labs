@@ -69,7 +69,7 @@
         <div class="col-12 col-xl-4">
           <div class="footer-widget-1">
             <div class="footer-logo mb-4">
-              <img src="{{ asset('landing/assets/images/nobg.png') }}" width="200" alt="">
+              <img src="{{ asset('/assets/images/logos.png') }}" width="100" alt="">
             </div>
             <p> Pusat Elektronik Harco Mangga Dua Lt. Dasar Blok B No. 80 Jl. Arteri, Jl. Mangga Dua Raya, RT.14/RW.5, Kartini, Kecamatan Sawah Besar, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta</p>
             {{-- <p class="mb-2"><strong>Address: </strong>B895 Sudan Street,<br> United Kingdom, Pin 569874</p> --}}
