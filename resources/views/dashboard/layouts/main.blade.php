@@ -11,7 +11,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <!--favicon-->
-  <link rel="icon" href="{{ asset('vertical/assets/images/stars.jpeg') }}" type="image/png">
+  <link rel="icon" href="{{ asset('/assets/images/logos.png') }}" type="image/png">
   <!-- loader-->
   <link href="{{ asset('vertical/assets/css/pace.min.css') }}" rel="stylesheet">
   <script src="{{ asset('vertical/assets/js/pace.min.js') }}"></script>
