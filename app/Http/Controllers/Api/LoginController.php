@@ -96,6 +96,7 @@ class LoginController extends Controller
 
     public function register(Request $request)
     {
+        dd($request->all());
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -111,10 +112,11 @@ class LoginController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
-            return response()->json([
-                'message' => 'Register Berhasil',
-                'data' =>  $user
-            ], 201);
+            // return response()->json([
+            //     'message' => 'Register Berhasil',
+            //     'data' =>  $user
+            // ], 201);
+            return redirect('/login')->with('success', 'Register berhasil!');
         } catch (ValidationException $e) {
             return response()->json([
                 'errors' => $e->errors()

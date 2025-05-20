@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 
 class LoginController extends Controller
@@ -269,5 +270,35 @@ class LoginController extends Controller
         }
 
         return redirect('/login')->with('success', 'Register berhasil!');
+    }
+
+    public function daftar_akun(Request $request)
+    {
+        // dd($request->all());
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'username' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:8',
+            ]);
+
+            $user = User::create([
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+
+            // return response()->json([
+            //     'message' => 'Register Berhasil',
+            //     'data' =>  $user
+            // ], 201);
+            return redirect('/login')->with('success', 'Register berhasil!');
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('username')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('jabatan');
+            $table->string('jabatan')->nullable();
             $table->string('password');
             $table->integer('is_admin')->default(0);
             $table->text('api_token')->nullable();

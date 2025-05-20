@@ -33,7 +33,7 @@
                <p class="mb-0">Enter your information to create your account</p>
 
                <div class="form-body my-5">
-                 <form class="row g-3" action="{{ route('register.storeRegister') }}" method="POST">
+                 <form class="row g-3" action="{{ route('daftar.akun') }}" method="POST">
                   @csrf
                    <div class="col-12">
                      <label for="inputNameAddress" class="form-label @error('name') is-invalid @enderror">Name</label>

@@ -47,7 +47,7 @@ Route::get('/login/google/callback', [LoginController::class, 'handleGoogleCallb
 Route::post('/logout', [LoginController::class, 'logout']);
 Route::get('/lupa-password', [LoginController::class, 'v_resetpassword']);
 Route::get('/register', [LoginController::class, 'register']);
-Route::post('/register', [LoginController::class, 'storeRegister'])->name('register.storeRegister');
+Route::post('/register', [LoginController::class, 'daftar_akun'])->name('daftar.akun');
 
 Route::get('/reset-password', [LoginController::class, 'getTokenEmail']);
 Route::post('/reset-password', [LoginController::class, 'sendEmail'])->name('reset.sendEmail');
