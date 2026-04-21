@@ -33,6 +33,8 @@
 <div class="toolbar">
   <input type="file" id="upload" accept="video/*">
   <button onclick="addFrame()">Add Frame</button>
+
+  <button onclick="addNetflixIcon()">Add Netflix Icon</button>
 </div>
 
 <canvas id="canvas" width="900" height="500"></canvas>
@@ -164,6 +166,80 @@ function applyCrop() {
   canvas.renderAll();
   requestAnimationFrame(animate);
 })();
+
+
+// ========================
+// ADD NETFLIX ICON
+// ========================
+function addNetflixIcon() {
+  const iconUrl = "https://cdn-icons-png.flaticon.com/512/5977/5977590.png";
+
+  fabric.Image.fromURL(iconUrl, function(img) {
+
+    img.set({
+      left: 200,
+      top: 200,
+      scaleX: 0.2,
+      scaleY: 0.2,
+      hasControls: true,
+      cornerColor: 'red'
+    });
+
+    // tandain ini tombol Netflix
+    img.isNetflixButton = true;
+
+    canvas.add(img);
+    canvas.setActiveObject(img);
+
+  }, { crossOrigin: 'anonymous' });
+}
+
+// ========================
+// CLICK EVENT (OPEN NETFLIX)
+// ========================
+canvas.on('mouse:down', function(e) {
+  const obj = e.target;
+
+  if (obj && obj.isNetflixButton) {
+    openNetflix();
+  }
+});
+
+// ========================
+// HOVER EFFECT
+// ========================
+canvas.on('mouse:over', function(e) {
+  if (e.target && e.target.isNetflixButton) {
+    e.target.scaleX *= 1.1;
+    e.target.scaleY *= 1.1;
+    canvas.renderAll();
+  }
+});
+
+canvas.on('mouse:out', function(e) {
+  if (e.target && e.target.isNetflixButton) {
+    e.target.scaleX /= 1.1;
+    e.target.scaleY /= 1.1;
+    canvas.renderAll();
+  }
+});
+
+// ========================
+// OPEN NETFLIX
+// ========================
+function openNetflix() {
+  const appLink = "intent://www.netflix.com#Intent;package=com.netflix.mediaclient;scheme=https;end;";
+  const webLink = "https://www.netflix.com";
+
+  const now = Date.now();
+  window.location.href = appLink;
+
+  setTimeout(() => {
+    if (Date.now() - now < 1200) {
+      window.location.href = webLink;
+    }
+  }, 1000);
+}
 </script>
 
 </body>
