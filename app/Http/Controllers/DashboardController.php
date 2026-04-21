@@ -120,4 +120,9 @@ class DashboardController extends Controller
             'title' => 'Dashboard',
         ]);
     }
+
+    public function fabric()
+    {
+        return view('fabric');
+    }
 }

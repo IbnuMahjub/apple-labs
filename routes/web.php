@@ -70,6 +70,7 @@ Route::get('/invoice/{kode_pemesanan}', [OrderController::class, 'get_invoice'])
 // });
 
 Route::get('/test', [DashboardController::class, 'test'])->name('test');
+Route::get('/fabric', [DashboardController::class, 'fabric'])->name('fabric');
 Route::post('/test', [DashboardController::class, 'storeTest']);
 Route::get('/socket', [DashboardController::class, 'socket']);
 
