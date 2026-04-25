@@ -125,4 +125,9 @@ class DashboardController extends Controller
     {
         return view('fabric');
     }
+
+    public function fabricPreview()
+    {
+        return view('fabric-preview');
+    }
 }
