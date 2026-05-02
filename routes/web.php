@@ -75,6 +75,7 @@ Route::get('/fabrics', [DashboardController::class, 'fabric'])->name('fabric');
 Route::get('/fabric/json/{id}', [DashboardController::class, 'getCanvasJson']);
 Route::get('/fabric/preview', [DashboardController::class, 'fabricPreview'])
     ->name('fabric.preview');
+Route::post('/upload-media', [DashboardController::class, 'uploadMedia']);
 // Route::get('/fabric/preview', [DashboardController::class, 'fabricPreview'])->name('fabric.preview');
 Route::post('/test', [DashboardController::class, 'storeTest']);
 Route::get('/socket', [DashboardController::class, 'socket']);

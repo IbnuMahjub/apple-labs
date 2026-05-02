@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Mini Canva TV Editor</title>
-
+<meta name="csrf-token" content="{{ csrf_token() }}">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
   <style>
@@ -87,6 +87,35 @@ const canvas = new fabric.Canvas('canvas', {
 let activeVideo = null;
 let frame = null;
 
+function uploadFile(file) {
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  const token = meta ? meta.getAttribute('content') : null;
+
+  return fetch('/upload-media', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': token,
+      'Accept': 'application/json'
+    },
+    body: formData
+  })
+  .then(async res => {
+
+    const text = await res.text();
+
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.log("SERVER RESPONSE ERROR:", text);
+      throw new Error("Response bukan JSON");
+    }
+  });
+}
+
 // ======================================
 // UPLOAD VIDEO
 // ======================================
@@ -95,56 +124,49 @@ document.getElementById('upload')
 .addEventListener('change', function(e) {
 
   const file = e.target.files[0];
-
   if (!file) return;
 
-  const url = URL.createObjectURL(file);
+  uploadFile(file).then(res => {
 
-  const videoEl = document.createElement('video');
+    const url = res.url; // 👈 ini URL asli dari server
 
-  videoEl.src = url;
+    const videoEl = document.createElement('video');
+    videoEl.src = url;
 
-  videoEl.width = 1920;
-  videoEl.height = 1080;
+    videoEl.width = 1920;
+    videoEl.height = 1080;
 
-  videoEl.muted = true;
-  videoEl.loop = true;
-  videoEl.playsInline = true;
+    videoEl.muted = true;
+    videoEl.loop = true;
+    videoEl.playsInline = true;
 
-  videoEl.onloadeddata = () => {
+    videoEl.onloadeddata = () => {
 
-    const videoObj = new fabric.Image(videoEl, {
+      const videoObj = new fabric.Image(videoEl, {
+        left: 960,
+        top: 540,
+        originX: 'center',
+        originY: 'center',
+        objectCaching: false,
+        selectable: true
+      });
 
-      left: 960,
-      top: 540,
+      const scale = Math.min(
+        1600 / videoEl.videoWidth,
+        900 / videoEl.videoHeight
+      );
 
-      originX: 'center',
-      originY: 'center',
+      videoObj.scale(scale);
 
-      objectCaching: false,
-      selectable: true
-    });
+      videoObj.customType = 'video';
+      videoObj.videoSrc = url; // 🔥 BUKAN blob lagi
 
-    // AUTO FIT
-    const scale = Math.min(
-      1600 / videoEl.videoWidth,
-      900 / videoEl.videoHeight
-    );
+      canvas.add(videoObj);
+      canvas.sendToBack(videoObj);
 
-    videoObj.scale(scale);
-
-    // SAVE CUSTOM DATA
-    videoObj.customType = 'video';
-    videoObj.videoSrc = url;
-
-    activeVideo = videoObj;
-
-    canvas.add(videoObj);
-
-    canvas.sendToBack(videoObj);
-
-    videoEl.play();
-  };
+      videoEl.play();
+    };
+  });
 });
 
 // ======================================

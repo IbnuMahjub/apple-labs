@@ -190,4 +190,24 @@ class DashboardController extends Controller
             'canvas' => json_decode($canvas->json)
         ]);
     }
+
+
+    public function uploadMedia(Request $request)
+    {
+        if (!$request->hasFile('file')) {
+            return response()->json([
+                'message' => 'No file uploaded'
+            ], 400);
+        }
+
+        $file = $request->file('file');
+
+        $name = time() . '.' . $file->getClientOriginalExtension();
+
+        $file->move(public_path('uploads'), $name);
+
+        return response()->json([
+            'url' => asset('uploads/' . $name)
+        ]);
+    }
 }
