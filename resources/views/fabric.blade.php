@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-  <title>TV UI + Canvas Navigation FINAL FIX</title>
+  <title>Mini Canva TV Editor</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
@@ -11,6 +11,7 @@
       background: #111;
       color: white;
       font-family: Arial;
+      overflow: hidden;
     }
 
     .toolbar {
@@ -19,26 +20,29 @@
       display: flex;
       gap: 10px;
       align-items: center;
+      height: 70px;
     }
 
-    button, input {
+    button,
+    input {
       padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
       background: #333;
       color: white;
-      border: 1px solid #555;
-      border-radius: 6px;
+      cursor: pointer;
     }
 
-    button:focus, input:focus {
-      background: red;
-      outline: 2px solid yellow;
-      transform: scale(1.05);
+    button:hover {
+      background: #444;
     }
 
     canvas {
-      border: 1px solid #444;
+      border-top: 1px solid #444;
       display: block;
-      margin: 20px auto;
+
+      width: 100vw;
+      height: calc(100vh - 70px);
     }
   </style>
 </head>
@@ -46,218 +50,63 @@
 <body>
 
 <div class="toolbar">
-  <input id="upload" type="file" accept="video/*">
-  <button id="btnFrame" onclick="addFrame()">Frame</button>
-  <button id="btnNetflix" onclick="addNetflixIcon()">Netflix</button>
-  <button id="btnYoutube" onclick="addYoutubeIcon()">YouTube</button>
+
+  <input type="file" id="upload" accept="video/*">
+
+  <button onclick="addFrame()">
+    Add Frame
+  </button>
+
+  <button onclick="addNetflixButton()">
+    Add Netflix
+  </button>
+
+  <button onclick="addYoutubeButton()">
+    Add YouTube
+  </button>
+
+  <button onclick="exportJSON()">
+    Generate JSON
+  </button>
+
+  <button onclick="openPreview()">
+    Preview
+  </button>
+
 </div>
 
-<canvas id="canvas" width="900" height="500"></canvas>
+<canvas id="canvas" width="1920" height="1080"></canvas>
 
 <script>
+
 const canvas = new fabric.Canvas('canvas', {
   preserveObjectStacking: true,
-  selection: false
+  selection: true
 });
 
-//////////////////////////////
-// 🔥 STATE
-//////////////////////////////
+let activeVideo = null;
+let frame = null;
 
-const uiElements = [
-  document.getElementById("upload"),
-  document.getElementById("btnFrame"),
-  document.getElementById("btnNetflix"),
-  document.getElementById("btnYoutube")
-];
+// ======================================
+// UPLOAD VIDEO
+// ======================================
 
-let uiIndex = 0;
-let mode = "ui";
+document.getElementById('upload')
+.addEventListener('change', function(e) {
 
-//////////////////////////////
-// 🎯 UI FOCUS
-//////////////////////////////
-function focusUI(i) {
-  uiElements.forEach(el => el?.blur());
-  uiElements[i]?.focus();
-}
-
-//////////////////////////////
-// 🎯 SAFE OBJECT LIST
-//////////////////////////////
-function getObjects() {
-  return canvas.getObjects().filter(o => o.selectable !== false);
-}
-
-//////////////////////////////
-// 🎯 SAFE ACTIVE OBJECT (FIX PENTING)
-//////////////////////////////
-function getActiveSafe() {
-  let active = canvas.getActiveObject();
-  const objs = getObjects();
-
-  if (!active && objs.length) {
-    active = objs[0];
-    canvas.setActiveObject(active);
-  }
-
-  return active;
-}
-
-//////////////////////////////
-// 🎯 FIXED SPATIAL NAVIGATION
-//////////////////////////////
-function findNearest(direction) {
-  const objs = getObjects();
-  const active = getActiveSafe();
-
-  if (!active || objs.length === 0) return null;
-
-  const ax = active.left || 0;
-  const ay = active.top || 0;
-
-  let best = null;
-  let minDist = Infinity;
-
-  for (let obj of objs) {
-    if (obj === active) continue;
-
-    const ox = obj.left || 0;
-    const oy = obj.top || 0;
-
-    const dx = ox - ax;
-    const dy = oy - ay;
-
-    let valid = false;
-    let dist = 0;
-
-    if (direction === "right" && dx > 20) {
-      valid = true;
-      dist = dx*dx + dy*dy;
-    }
-
-    if (direction === "left" && dx < -20) {
-      valid = true;
-      dist = dx*dx + dy*dy;
-    }
-
-    if (direction === "down" && dy > 20) {
-      valid = true;
-      dist = dx*dx + dy*dy;
-    }
-
-    if (direction === "up" && dy < -20) {
-      valid = true;
-      dist = dx*dx + dy*dy;
-    }
-
-    if (valid && dist < minDist) {
-      minDist = dist;
-      best = obj;
-    }
-  }
-
-  return best;
-}
-
-//////////////////////////////
-// 🎮 KEY CONTROL (FIXED TOTAL)
-//////////////////////////////
-document.addEventListener("keydown", function(e) {
-
-  if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
-    e.preventDefault();
-  }
-
-  if (e.key === "Backspace") {
-    mode = mode === "ui" ? "canvas" : "ui";
-
-    if (mode === "ui") focusUI(uiIndex);
-    return;
-  }
-
-  // ================= UI MODE =================
-  if (mode === "ui") {
-
-    switch (e.key) {
-
-      case "ArrowRight":
-      case "ArrowDown":
-        uiIndex++;
-        if (uiIndex >= uiElements.length) uiIndex = 0;
-        focusUI(uiIndex);
-        break;
-
-      case "ArrowLeft":
-      case "ArrowUp":
-        uiIndex--;
-        if (uiIndex < 0) uiIndex = uiElements.length - 1;
-        focusUI(uiIndex);
-        break;
-
-      case "Enter":
-        uiElements[uiIndex]?.click();
-        break;
-    }
-  }
-
-  // ================= CANVAS MODE =================
-  if (mode === "canvas") {
-
-    const active = getActiveSafe();
-    let target = null;
-
-    switch (e.key) {
-
-      case "ArrowRight":
-        target = findNearest("right");
-        break;
-
-      case "ArrowLeft":
-        target = findNearest("left");
-        break;
-
-      case "ArrowDown":
-        target = findNearest("down");
-        break;
-
-      case "ArrowUp":
-        target = findNearest("up");
-        break;
-
-      case "Enter":
-
-        if (active?.appType === "netflix") {
-          window.location.href = "https://www.netflix.com";
-        }
-
-        if (active?.appType === "youtube") {
-          window.location.href = "https://www.youtube.com";
-        }
-
-        return;
-    }
-
-    // 🔥 IMPORTANT FIX (STABLE SELECTION)
-    if (target) {
-      canvas.setActiveObject(target);
-    } else if (active) {
-      canvas.setActiveObject(active);
-    }
-
-    canvas.renderAll();
-  }
-});
-
-//////////////////////////////
-// 📁 VIDEO
-//////////////////////////////
-document.getElementById('upload').addEventListener('change', function(e) {
   const file = e.target.files[0];
+
+  if (!file) return;
+
   const url = URL.createObjectURL(file);
 
   const videoEl = document.createElement('video');
+
   videoEl.src = url;
+
+  videoEl.width = 1920;
+  videoEl.height = 1080;
+
   videoEl.muted = true;
   videoEl.loop = true;
   videoEl.playsInline = true;
@@ -265,121 +114,270 @@ document.getElementById('upload').addEventListener('change', function(e) {
   videoEl.onloadeddata = () => {
 
     const videoObj = new fabric.Image(videoEl, {
-      left: 120,
-      top: 120,
+
+      left: 960,
+      top: 540,
+
+      originX: 'center',
+      originY: 'center',
+
+      objectCaching: false,
       selectable: true
     });
 
-    videoObj.scaleX = 700 / videoEl.videoWidth;
-    videoObj.scaleY = 400 / videoEl.videoHeight;
+    // AUTO FIT
+    const scale = Math.min(
+      1600 / videoEl.videoWidth,
+      900 / videoEl.videoHeight
+    );
+
+    videoObj.scale(scale);
+
+    // SAVE CUSTOM DATA
+    videoObj.customType = 'video';
+    videoObj.videoSrc = url;
+
+    activeVideo = videoObj;
 
     canvas.add(videoObj);
-    canvas.setActiveObject(videoObj);
+
+    canvas.sendToBack(videoObj);
 
     videoEl.play();
   };
 });
 
-//////////////////////////////
-// 📦 FRAME
-//////////////////////////////
+// ======================================
+// ADD FRAME
+// ======================================
+
 function addFrame() {
-  const frame = new fabric.Rect({
-    left: 350,
-    top: 150,
-    width: 250,
-    height: 180,
+
+  frame = new fabric.Rect({
+
+    left: 300,
+    top: 120,
+
+    width: 400,
+    height: 250,
+
     fill: 'rgba(0,0,0,0.05)',
+
     stroke: '#00aaff',
-    strokeWidth: 2,
-    selectable: true
+    strokeWidth: 3,
+
+    selectable: true,
+    evented: true,
+
+    hasBorders: true,
+    hasControls: true,
+
+    cornerColor: '#00aaff',
+    cornerSize: 12,
+    transparentCorners: false
   });
 
   canvas.add(frame);
+
   canvas.setActiveObject(frame);
+
+  frame.bringToFront();
 }
 
-//////////////////////////////
-// 🎬 NETFLIX
-//////////////////////////////
-function addNetflixIcon() {
-  const iconUrl = "https://cdn-icons-png.flaticon.com/512/5977/5977590.png";
+// ======================================
+// NETFLIX BUTTON
+// ======================================
 
-  fabric.Image.fromURL(iconUrl, function(img) {
+function addNetflixButton() {
 
-    img.set({
-      left: 400,
-      top: 200,
-      scaleX: 0.2,
-      scaleY: 0.2,
-      selectable: true
-    });
+  const group = new fabric.Group([
 
-    img.appType = "netflix";
+    new fabric.Rect({
+      width: 260,
+      height: 80,
+      rx: 15,
+      ry: 15,
+      fill: '#E50914'
+    }),
 
-    canvas.add(img);
+    new fabric.Text('NETFLIX', {
+      fontSize: 34,
+      fill: 'white',
+      fontWeight: 'bold',
+      originX: 'center',
+      originY: 'center',
+      left: 130,
+      top: 40
+    })
 
-    setTimeout(() => {
-      canvas.setActiveObject(img);
-      canvas.renderAll();
-    }, 30);
+  ], {
 
-  }, { crossOrigin: 'anonymous' });
+    left: 300,
+    top: 300,
+
+    selectable: true,
+    hasControls: true
+  });
+
+  group.appType = 'netflix';
+  group.customType = 'netflix';
+
+  canvas.add(group);
 }
 
-//////////////////////////////
-// ▶️ YOUTUBE
-//////////////////////////////
-function addYoutubeIcon() {
-  const iconUrl = "https://cdn-icons-png.flaticon.com/512/1384/1384060.png";
+// ======================================
+// YOUTUBE BUTTON
+// ======================================
 
-  fabric.Image.fromURL(iconUrl, function(img) {
+function addYoutubeButton() {
 
-    img.set({
-      left: 550,
-      top: 200,
-      scaleX: 0.2,
-      scaleY: 0.2,
-      selectable: true
-    });
+  const group = new fabric.Group([
 
-    img.appType = "youtube";
+    new fabric.Rect({
+      width: 260,
+      height: 80,
+      rx: 15,
+      ry: 15,
+      fill: '#FF0000'
+    }),
 
-    canvas.add(img);
+    new fabric.Triangle({
+      width: 28,
+      height: 28,
+      fill: 'white',
+      left: 90,
+      top: 26,
+      angle: 90
+    }),
 
-    setTimeout(() => {
-      canvas.setActiveObject(img);
-      canvas.renderAll();
-    }, 30);
+    new fabric.Text('YouTube', {
+      fontSize: 30,
+      fill: 'white',
+      fontWeight: 'bold',
+      left: 120,
+      top: 22
+    })
 
-  }, { crossOrigin: 'anonymous' });
+  ], {
+
+    left: 700,
+    top: 300,
+
+    selectable: true,
+    hasControls: true
+  });
+
+  group.appType = 'youtube';
+  group.customType = 'youtube';
+
+  canvas.add(group);
 }
 
-//////////////////////////////
-// 🖱 CLICK
-//////////////////////////////
-canvas.on('mouse:down', function(e) {
-  const obj = e.target;
+// ======================================
+// APPLY CROP
+// ======================================
 
-  if (!obj) return;
+function applyCrop() {
 
-  canvas.setActiveObject(obj);
+  if (!activeVideo || !frame) return;
 
-  if (obj.appType === "netflix") {
-    window.location.href = "https://www.netflix.com";
-  }
+  activeVideo.clipPath = new fabric.Rect({
 
-  if (obj.appType === "youtube") {
-    window.location.href = "https://www.youtube.com";
+    left: frame.left,
+    top: frame.top,
+
+    width: frame.width * frame.scaleX,
+    height: frame.height * frame.scaleY,
+
+    absolutePositioned: true
+  });
+}
+
+// ======================================
+// UPDATE CROP
+// ======================================
+
+canvas.on('object:moving', function(e) {
+
+  if (!activeVideo || !frame) return;
+
+  if (
+    e.target === activeVideo ||
+    e.target === frame
+  ) {
+    applyCrop();
   }
 });
 
-//////////////////////////////
-// 🚀 INIT
-//////////////////////////////
-setTimeout(() => {
-  focusUI(uiIndex);
-}, 300);
+canvas.on('object:scaling', function(e) {
+
+  if (e.target === frame) {
+    applyCrop();
+  }
+});
+
+// ======================================
+// DOUBLE CLICK APP
+// ======================================
+
+canvas.on('mouse:dblclick', function(opt) {
+
+  const obj = opt.target;
+
+  if (!obj) return;
+
+  if (obj.appType === 'netflix') {
+
+    alert('Open Netflix App');
+  }
+
+  if (obj.appType === 'youtube') {
+
+    alert('Open YouTube App');
+  }
+});
+
+
+function exportJSON() {
+
+  const json = canvas.toJSON();
+
+  console.log(json);
+
+  fetch('/canvas/save', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': '{{ csrf_token() }}'
+    },
+    body: JSON.stringify({
+      title: 'Canvas 1',
+      json: JSON.stringify(json)
+    })
+  })
+  .then(res => res.json())
+  .then(res => {
+    alert('Saved to database!');
+    console.log(res);
+  })
+  .catch(err => {
+    console.error(err);
+  });
+}
+
+
+
+// ======================================
+// RENDER LOOP
+// ======================================
+
+(function animate() {
+
+  canvas.renderAll();
+
+  requestAnimationFrame(animate);
+
+})();
 
 </script>
 

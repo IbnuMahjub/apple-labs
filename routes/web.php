@@ -70,8 +70,12 @@ Route::get('/invoice/{kode_pemesanan}', [OrderController::class, 'get_invoice'])
 // });
 
 Route::get('/test', [DashboardController::class, 'test'])->name('test');
-Route::get('/fabric', [DashboardController::class, 'fabric'])->name('fabric');
-Route::get('/fabric/preview', [DashboardController::class, 'fabricPreview'])->name('fabric.preview');
+Route::post('/canvas/save', [DashboardController::class, 'saveCanvas']);
+Route::get('/fabrics', [DashboardController::class, 'fabric'])->name('fabric');
+Route::get('/fabric/json/{id}', [DashboardController::class, 'getCanvasJson']);
+Route::get('/fabric/preview', [DashboardController::class, 'fabricPreview'])
+    ->name('fabric.preview');
+// Route::get('/fabric/preview', [DashboardController::class, 'fabricPreview'])->name('fabric.preview');
 Route::post('/test', [DashboardController::class, 'storeTest']);
 Route::get('/socket', [DashboardController::class, 'socket']);
 

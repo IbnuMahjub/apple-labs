@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Events\OrderNotification;
+use App\Models\tr_canvas;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
@@ -126,8 +130,64 @@ class DashboardController extends Controller
         return view('fabric');
     }
 
+    // public function fabricPreview()
+    // {
+    //     return view('fabric-preview');
+    // }
     public function fabricPreview()
     {
         return view('fabric-preview');
+    }
+
+    // public function saveFabricJson(Request $request)
+    // {
+    //     $json = $request->json;
+
+    //     $path = public_path('fabric');
+
+    //     if (!File::exists($path)) {
+
+    //         File::makeDirectory(
+    //             $path,
+    //             0777,
+    //             true
+    //         );
+    //     }
+
+    //     File::put(
+    //         public_path('fabric/design.json'),
+    //         $json
+    //     );
+
+    //     return response()->json([
+    //         'success' => true
+    //     ]);
+    // }
+
+    public function saveCanvas(Request $request)
+    {
+        $data = tr_canvas::create([
+            'title' => $request->title,
+            'json' => $request->json
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Canvas saved',
+            'data' => $data
+        ]);
+    }
+
+
+    public function getCanvasJson($id)
+    {
+        $canvas = tr_canvas::findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'id' => $canvas->id,
+            'title' => $canvas->title,
+            'canvas' => json_decode($canvas->json)
+        ]);
     }
 }
