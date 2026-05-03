@@ -108,10 +108,18 @@ function uploadFile(file) {
     const text = await res.text();
 
     try {
-      return JSON.parse(text);
+      const json = JSON.parse(text);
+
+      
+      if (!json.url) {
+        throw new Error("URL tidak ada di response");
+      }
+
+      return json;
+
     } catch (e) {
       console.log("SERVER RESPONSE ERROR:", text);
-      throw new Error("Response bukan JSON");
+      throw e;
     }
   });
 }
